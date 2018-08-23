@@ -1,0 +1,50 @@
+#!/usr/bin/env python3.7
+
+import argparse
+import requests
+
+
+def url_creator(location, keyword):
+
+    base_url = 'https://www.indeed.ae/jobs?'
+
+    query_url = base_url + f'q={keyword}&l={location}'
+
+    print(query_url)
+    return query_url
+
+def fetch_input():
+    """
+    Gets parameters from command line arguments and
+    passes it to indeed_scraper function in scraper file
+    """
+
+    arg_list = []
+
+    parser = argparse.ArgumentParser(
+            description = 'Script that gets job posts from indeed.com'
+            )
+    parser.add_argument(
+            '--location',
+            '-l',
+            type = str,
+            help = 'Specific Location of jobs to be fetched',
+            required = True)
+    parser.add_argument(
+            '--keywords',
+            '-kw',
+            type = str,
+            help = 'Job keywords',
+            required = True,
+            default = "")
+
+    args = parser.parse_args()
+    arg_list.append(args.location)
+    arg_list.append(args.keywords)
+    print(arg_list)
+
+    url_creator(arg_list[0], arg_list[1])
+    return arg_list
+
+if __name__ == 'main':
+    fetch_input()
