@@ -1,0 +1,36 @@
+#!/usr/bin/env python3.7
+
+import requests
+from lxml import html
+from get_info import fetch_input
+
+#def url_creaior(location, keyword):
+#    base_url = 'https://www.indeed.ae/jobs?'
+#
+#    query_url = base_url + f'q={keyword}&l={location}'
+##
+#    print(query_url)
+#    return query_url
+
+
+def scraper():
+
+    arg_list = fetch_input()
+    query_url = arg_list[3]
+
+    print(query_url)
+
+def login_indeed():
+
+
+    login_info = {
+            'action' : 'Login',
+            '__email' : '',
+            '__password' : '',
+            'remember' : '1'
+            'h1' : 'en',
+            'continue' : '/account/view?hl=en'
+
+scraper()
+#if __name__ == 'main':
+#    scraper()
