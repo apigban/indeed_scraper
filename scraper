@@ -1,36 +1,86 @@
 #!/usr/bin/env python3.7
 
 import requests
+import os
 from lxml import html
 from get_info import fetch_input
 
-#def url_creaior(location, keyword):
-#    base_url = 'https://www.indeed.ae/jobs?'
-#
-#    query_url = base_url + f'q={keyword}&l={location}'
-##
-#    print(query_url)
-#    return query_url
-
-
-def scraper():
+def page_pull():
 
     arg_list = fetch_input()
     query_url = arg_list[3]
 
-    print(query_url)
+    user_agent = {'User-Agent':'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.79 Safari/537.36'}
+    #print(query_url)
 
-def login_indeed():
+    page = requests.get(query_url, headers=user_agent)
+    #print(page.content)
+    tree = html.fromstring(page.text)
+    #print(tree)
+    return tree
 
 
-    login_info = {
-            'action' : 'Login',
-            '__email' : '',
-            '__password' : '',
-            'remember' : '1'
-            'h1' : 'en',
-            'continue' : '/account/view?hl=en'
+def extractor_jobTitle():
 
-scraper()
-#if __name__ == 'main':
-#    scraper()
+    tree = page_pull()
+
+    jobs = []
+    jobTitle_xpath = '//a[@data-tn-element="jobTitle"]/text()'
+    #'//h2[@class="jobtitle"]/text()'
+    jobTitle = tree.xpath(jobTitle_xpath)
+    print(jobTitle)
+
+
+def extractor_jobDetails():
+
+    tree = page_pull()
+
+    jobs = []
+    jobId_xpath = '//div[@data-tn-component="organicJob"]'
+    jobId = tree.xpath(jobId_xpath + '/@id')
+    jobLink = tree.xpath(jobId_xpath + '//a[@data-tn-element="jobTitle"]/@href')
+    jobTitle = tree.xpath(jobId_xpath + '//a[@data-tn-element="jobTitle"]/@title')
+
+    jobCompany = tree.xpath(jobId_xpath + '//div//span[@class="company"]/text()')
+
+
+    print(len(jobId), ' jobs available in this page\n')
+    #print(jobLink)
+
+    print(len(jobLink), 'job links found')
+    print(len(jobTitle), 'job titles found')
+    print(len(jobCompany))
+extractor_jobDetails()
+#extractor_jobTitle()
+
+
+
+
+
+#page_pull()
+#def search_jobs():
+
+
+
+
+#def login_indeed():
+#
+#    data = {'action':'https://secure.indeed.com/account/login',
+#            '__email':'apigbanIndeed@gmail.com',
+#            ' _password':'jSGpJepvSa9vECt7knbG',
+#            'remember':'1',
+#            'h1':'en_AE',
+#            'continue':'https://www.indeed.ae/'}
+#
+#    login_url = 'https://secure.indeed.com/account/login'
+#    user_agent = {'User-Agent':'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.79 Safari/537.36'}
+#    session_init = requests.Session()
+#
+#    with open('.login_indeed') as login_file:
+#        login_info = login_file.read()
+#        login_info = dict(item.split('=') for item in login_info.replace('\'','').split())
+    #print(type(login_info))
+    #print(type(data))
+#    response = requests.post(login_url, data=login_info, headers=user_agent)
+#   print(response)
+
