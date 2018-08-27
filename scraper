@@ -45,10 +45,11 @@ def date_parser(date_list):
 def newline_cleaner(job_list):
     index = 0
     while index < len(job_list):
-        job_list[index] = job_list[index].strip(' \n')
-        print(job_list[index])
+        job_list[index] = job_list[index].strip('\n')
+        if job_list[index] == '        ':
+            job_list[index] = job_list[index].replace('        ','nothing')
+        job_list[index] = job_list[index].strip(' ')
         index += 1
-    print(job_list)
     return job_list
 
 def extractor_jobDetails():
@@ -63,7 +64,7 @@ def extractor_jobDetails():
     jobLocation = tree.xpath(jobId_xpath + '//span[@class="location"]/text()')
     jobCompany = newline_cleaner(tree.xpath(jobId_xpath + '//div//span[@class="company"]/text()'))
     jobDate = date_parser(tree.xpath(jobId_xpath + '//div[@class="result-link-bar"]/span[@class="date"]/text()'))
-
+    print(jobCompany)
     jobDict = {
             'jobDetails':{
                 'Id':'',
@@ -85,17 +86,16 @@ def extractor_jobDetails():
         jobDict['jobDetails']['Location'] = jobLocation[index]
         jobDict['jobDetails']['Company'] = jobCompany[index]
         #write to file
+        print(jobDict,'\n')
         index += 1
 
 
     #for list_element in jobId:
     #    jobDict['jobId'] = list_element
     #    jobDict['jobId']['jobDate'] = str(jobDate[0])
-
     #jobData = [jobId, jobDate, jobLink, jobTitle, jobLocation, jobCompany]
     #print(jobLink[0])
     #return jobData
-    print(jobDict)
     #return jobData
 
     #def job_toDict(jobAttrib)
@@ -116,7 +116,7 @@ def extractor_jobDetails():
     #print(len(jobCompany), 'companies posted\n')
     #print(jobLocation)
     #print(len(jobDate))
-    #print(jobAttrib)
+    #print(jobDict)
 
 
 extractor_jobDetails()
