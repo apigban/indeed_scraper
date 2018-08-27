@@ -59,28 +59,3 @@ extractor_jobDetails()
 
 #page_pull()
 #def search_jobs():
-
-
-
-
-#def login_indeed():
-#
-#    data = {'action':'https://secure.indeed.com/account/login',
-#            '__email':'apigbanIndeed@gmail.com',
-#            ' _password':'jSGpJepvSa9vECt7knbG',
-#            'remember':'1',
-#            'h1':'en_AE',
-#            'continue':'https://www.indeed.ae/'}
-#
-#    login_url = 'https://secure.indeed.com/account/login'
-#    user_agent = {'User-Agent':'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.79 Safari/537.36'}
-#    session_init = requests.Session()
-#
-#    with open('.login_indeed') as login_file:
-#        login_info = login_file.read()
-#        login_info = dict(item.split('=') for item in login_info.replace('\'','').split())
-    #print(type(login_info))
-    #print(type(data))
-#    response = requests.post(login_url, data=login_info, headers=user_agent)
-#   print(response)
-
