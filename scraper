@@ -1,8 +1,11 @@
 #!/usr/bin/env python3.7
 
 import requests
-import os
+import json
 from lxml import html
+import dateparser as dp
+from datetime import timezone
+import time
 from get_info import fetch_input
 
 def page_pull():
@@ -20,36 +23,102 @@ def page_pull():
     return tree
 
 
-def extractor_jobTitle():
+def date_parser(date_list):
+    index = 0
+    while index < len(date_list):
+        hr_date = dp.parse(date_list[index])
+        hr_date = time.mktime(hr_date.timetuple())
+        date_list[index] = hr_date
+        index += 1
+    return date_list
 
-    tree = page_pull()
+#def db_writer():
 
-    jobs = []
-    jobTitle_xpath = '//a[@data-tn-element="jobTitle"]/text()'
-    #'//h2[@class="jobtitle"]/text()'
-    jobTitle = tree.xpath(jobTitle_xpath)
-    print(jobTitle)
 
+#def file_writer(data):
+#    with open('out.json') as write_file:
+#        json.dump(data, write_file)
+
+#def compile_dict():
+
+
+def newline_cleaner(job_list):
+    index = 0
+    while index < len(job_list):
+        job_list[index] = job_list[index].strip(' \n')
+        print(job_list[index])
+        index += 1
+    print(job_list)
+    return job_list
 
 def extractor_jobDetails():
 
     tree = page_pull()
 
-    jobs = []
     jobId_xpath = '//div[@data-tn-component="organicJob"]'
+
     jobId = tree.xpath(jobId_xpath + '/@id')
     jobLink = tree.xpath(jobId_xpath + '//a[@data-tn-element="jobTitle"]/@href')
     jobTitle = tree.xpath(jobId_xpath + '//a[@data-tn-element="jobTitle"]/@title')
+    jobLocation = tree.xpath(jobId_xpath + '//span[@class="location"]/text()')
+    jobCompany = newline_cleaner(tree.xpath(jobId_xpath + '//div//span[@class="company"]/text()'))
+    jobDate = date_parser(tree.xpath(jobId_xpath + '//div[@class="result-link-bar"]/span[@class="date"]/text()'))
 
-    jobCompany = tree.xpath(jobId_xpath + '//div//span[@class="company"]/text()')
+    jobDict = {
+            'jobDetails':{
+                'Id':'',
+                'Date':'',
+                'Link':'',
+                'Title':'',
+                'Location':'',
+                'Company':'',
+                }
+            }
+
+    index = 0
+
+    while index < len(jobId):
+        jobDict['jobDetails']['Id'] = jobId[index]
+        jobDict['jobDetails']['Date'] = jobDate[index]
+        jobDict['jobDetails']['Link'] = jobLink[index]
+        jobDict['jobDetails']['Title'] = jobTitle[index]
+        jobDict['jobDetails']['Location'] = jobLocation[index]
+        jobDict['jobDetails']['Company'] = jobCompany[index]
+        #write to file
+        index += 1
 
 
-    print(len(jobId), ' jobs available in this page\n')
+    #for list_element in jobId:
+    #    jobDict['jobId'] = list_element
+    #    jobDict['jobId']['jobDate'] = str(jobDate[0])
+
+    #jobData = [jobId, jobDate, jobLink, jobTitle, jobLocation, jobCompany]
+    #print(jobLink[0])
+    #return jobData
+    print(jobDict)
+    #return jobData
+
+    #def job_toDict(jobAttrib)
+    #index = 0
+
+    #while index < len(jobAttrib):
+    #    i
+
+    #    hr_date = dp.parse(date_list[index])
+    #    date_list[index] = hr_date
+    #jobSponsored = has_sponsor(tree, jobId_xpath)
+    #jobEasyapply = has_easyapply(tree, jobId_xpath)
+    #print(len(jobId), ' jobs available in this page\n')
     #print(jobLink)
 
-    print(len(jobLink), 'job links found')
-    print(len(jobTitle), 'job titles found')
-    print(len(jobCompany))
+    #print(len(jobLink), 'job links found\n')
+    #print(len(jobTitle), 'job titles found\n')
+    #print(len(jobCompany), 'companies posted\n')
+    #print(jobLocation)
+    #print(len(jobDate))
+    #print(jobAttrib)
+
+
 extractor_jobDetails()
 #extractor_jobTitle()
 
