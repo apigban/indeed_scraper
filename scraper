@@ -6,6 +6,7 @@ from lxml import html
 import dateparser as dp
 from datetime import timezone
 import time
+import re
 from get_info import fetch_input
 
 def page_pull():
@@ -20,7 +21,7 @@ def page_pull():
     #print(page.content)
     tree = html.fromstring(page.text)
     #print(tree)
-    return tree
+    return tree, query_url
 
 
 def date_parser(date_list):
@@ -41,22 +42,30 @@ def file_write(data):
         write_file.write('\n')
 
 
-def next_page_selector(tree):
+def next_page_selector(tree,query_url):
 
 
     c_page_xpath =  '//div[@class="pagination"]/b'
     c_page = tree.xpath(c_page_xpath + '/text()')
 
     n_page_xpath = '//div[@class="pagination"]/a'
+
+
     n_page_link = tree.xpath(n_page_xpath + '/@href')
+
+    index = 0
+    while index < len(n_page_link):
+        n_page_link[index] = query_url + re.sub(r"jobs.*&l=\w+", '' , n_page_link[index])
+        index += 1
+    #print('\n\n',n_page_link)
+
     n_page_num = tree.xpath(n_page_xpath + '/span[@class="pn"]/text()')
 
     n_page = n_page_num[0]
-    print(n_page_num, '\n')
-    print(n_page_link, '\n')
-
-    #print('Now on page ' + c_page + '.NEXT is ' + n_page)
-
+    #print(n_page, '\n')
+    #print(n_page_link[0], '\n')
+    print(f'Scraper is Now on page {c_page}. NEXT page is {n_page} with LINK: \n{n_page_link[0]}')
+    return n_page_link
 
 def newline_cleaner(job_list):
     index = 0
@@ -120,8 +129,10 @@ def extractor_jobDetails(tree):
 
 if __name__ == '__main__':
 
-    tree = page_pull()
+    raw_page = page_pull()
 
-    next_page_selector(tree)
+    (tree,query_url) = raw_page
+
+    next_page_selector(tree, query_url)
     extractor_jobDetails(tree)
 
