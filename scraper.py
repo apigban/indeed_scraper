@@ -7,26 +7,28 @@ import dateparser as dp
 from datetime import timezone
 import time
 import re
+import redis
+import login_redis as lr
 from get_info import fetch_input
+import concurrent.futures
 
 def page_pull():
 
+    query_url = redis_session.lpop('page_url')
+
     arg_list = fetch_input()
-    query_url = arg_list[3]
 
     user_agent = {'User-Agent':'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.79 Safari/537.36'}
-    #print(query_url)
 
     page = requests.get(query_url, headers=user_agent)
-    #print(page.content)
     tree = html.fromstring(page.text)
-    #print(tree)
     return tree, query_url
 
 
-def date_parser(date_list):
-    index = 0
+def date_parser(date_list):             #Exact dates after 1 month is not possible
+    index = 0                           #indeed is not showing exact dates after 30 days
     while index < len(date_list):
+        date_list[index] = date_list[index].replace('+','')  #strip symbols from dates
         hr_date = dp.parse(date_list[index])
         hr_date = int(time.mktime(hr_date.timetuple()))
         date_list[index] = hr_date
@@ -35,37 +37,11 @@ def date_parser(date_list):
 
 #def db_writer():
 
-
 def file_write(data):
     with open('out.json', 'a') as write_file:
         json.dump(data, write_file, indent=4)
         write_file.write('\n')
 
-
-def next_page_selector(tree,query_url):
-
-
-    c_page_xpath =  '//div[@class="pagination"]/b'
-    c_page = tree.xpath(c_page_xpath + '/text()')
-
-    n_page_xpath = '//div[@class="pagination"]/a'
-
-
-    n_page_link = tree.xpath(n_page_xpath + '/@href')
-
-    index = 0
-    while index < len(n_page_link):
-        n_page_link[index] = query_url + re.sub(r"jobs.*&l=\w+", '' , n_page_link[index])
-        index += 1
-    #print('\n\n',n_page_link)
-
-    n_page_num = tree.xpath(n_page_xpath + '/span[@class="pn"]/text()')
-
-    n_page = n_page_num[0]
-    #print(n_page, '\n')
-    #print(n_page_link[0], '\n')
-    print(f'Scraper is Now on page {c_page}. NEXT page is {n_page} with LINK: \n{n_page_link[0]}')
-    return n_page_link
 
 def newline_cleaner(job_list):
     index = 0
@@ -78,9 +54,9 @@ def newline_cleaner(job_list):
     return job_list
 
 
-def extractor_jobDetails(tree):
+def extractor_jobDetails():
 
-    tree = page_pull()
+    (tree,query_url) = page_pull()
 
     jobId_xpath = '//div[@data-tn-component="organicJob"]'
 
@@ -100,7 +76,6 @@ def extractor_jobDetails(tree):
                 'Company':'',
                 }
             }
-
     index = 0
 
     while index < len(jobId):
@@ -112,7 +87,7 @@ def extractor_jobDetails(tree):
         jobDict['jobDetails']['Company'] = jobCompany[index]
 
         #write to file
-        #print(jobDict,'\n')
+        #print(jobDate,'\n')
         file_write(jobDict)
         index += 1
 
@@ -125,14 +100,36 @@ def extractor_jobDetails(tree):
     #jobSponsored = has_sponsor(tree, jobId_xpath)
     #jobEasyapply = has_easyapply(tree, jobId_xpath)
 
+def task_master():
+
+    with ProcessPoolExecutor() as executor:
+        futures = [executor.submit(extractor_jobDetails, tree)]
+    #for future in as_completed(futures):
+    #    print(future.result())
+
+def login_redis():
+
+    redis_retrieve = redis.StrictRedis(
+            host = lr.login['ip'],
+            port = lr.login['port'],
+            password = lr.login['password'],
+            db = lr.login['db']
+            )
+    print('<<Redis AUTH OK>>')
+    return redis_retrieve
+
+
 
 
 if __name__ == '__main__':
 
-    raw_page = page_pull()
+    redis_session = login_redis()
+    #raw_page = page_pull()
 
-    (tree,query_url) = raw_page
-
-    next_page_selector(tree, query_url)
-    extractor_jobDetails(tree)
-
+    (tree,query_url) = page_pull()
+    #task_master()
+    #extractor_jobDetails(tree)
+    with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
+        for url in redis_session.lrange('page_url', 0, -1):
+            futures = [executor.submit(extractor_jobDetails)]
+            print(futures)
