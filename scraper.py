@@ -87,7 +87,6 @@ def extractor_jobDetails():
         jobDict['jobDetails']['Company'] = jobCompany[index]
 
         #write to file
-        #print(jobDate,'\n')
         file_write(jobDict)
         index += 1
 
@@ -100,12 +99,6 @@ def extractor_jobDetails():
     #jobSponsored = has_sponsor(tree, jobId_xpath)
     #jobEasyapply = has_easyapply(tree, jobId_xpath)
 
-def task_master():
-
-    with ProcessPoolExecutor() as executor:
-        futures = [executor.submit(extractor_jobDetails, tree)]
-    #for future in as_completed(futures):
-    #    print(future.result())
 
 def login_redis():
 
@@ -120,15 +113,11 @@ def login_redis():
 
 
 
-
 if __name__ == '__main__':
 
     redis_session = login_redis()
-    #raw_page = page_pull()
 
     (tree,query_url) = page_pull()
-    #task_master()
-    #extractor_jobDetails(tree)
     with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
         for url in redis_session.lrange('page_url', 0, -1):
             futures = [executor.submit(extractor_jobDetails)]
