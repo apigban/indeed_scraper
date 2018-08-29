@@ -7,28 +7,28 @@ from get_info import fetch_input
 import requests
 from lxml import html
 
-print(lr.login)
 
 redis_dump = redis.StrictRedis(
         host = lr.login['ip'],
         port = lr.login['port'],
         password = lr.login['password'],
-        db = lr.login['db'])
+        db = lr.login['db']
+        )
 
 
-def page_pull():
+def create_queryURL():
 
     arg_list = fetch_input()
     query_url = arg_list[3]
 
-    user_agent = {'User-Agent':'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KH    TML, like Gecko) Chrome/67.0.3396.79 Safari/537.36'}
+    #user_agent = {'User-Agent':'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KH    TML, like Gecko) Chrome/67.0.3396.79 Safari/537.36'}
     #print(query_url)
 
-    page = requests.get(query_url, headers=user_agent)
+    #page = requests.get(query_url, headers=user_agent)
     #print(page.content)
-    tree = html.fromstring(page.text)
+    #tree = html.fromstring(page.text)
     #print(tree)
-    return tree, query_url
+    return query_url
 
 
 def next_page_linkGenerator(query_url):
@@ -43,11 +43,11 @@ def next_page_linkGenerator(query_url):
         index += 1
     return page_links
 
+
 if __name__ == '__main__':
 
-    tree, query_url = page_pull()
+    query_url = create_queryURL()
 
     page_urls = next_page_linkGenerator(query_url)
 
     redis_dump.rpush('page_url',*page_urls)
-    #print(*page_urls)
